@@ -2,9 +2,10 @@ import pygame, sys
 
 from pygame.locals import *
 
+from new_game import create_white_pieces, create_black_pieces
 from settings import Settings
 from game.board import Board
-from game.piece import Piece
+from game.piece import *
 
 class ChessGame:
     """ A class to manage the game """
@@ -16,7 +17,9 @@ class ChessGame:
         self.screen = pygame.display.set_mode(self.settings.screen_size)
 
         self.board = Board(self)
-        self.pieces = pygame.sprite.Group()
+
+        self.white_pieces = create_white_pieces(self)
+        self.black_pieces = create_black_pieces(self)
 
     def run_game(self):
         """ Init the game loop """
@@ -36,7 +39,8 @@ class ChessGame:
         self.screen.fill((0,0,0))
 
         self.board.update()
-        self.pieces.draw(self.screen)
+        self.white_pieces.draw(self.screen)
+        self.black_pieces.draw(self.screen)
         
         pygame.display.update()
 
