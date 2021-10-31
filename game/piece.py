@@ -51,6 +51,7 @@ class Pawn(Piece):
             movements.append((self.square[0], self.square[1]+2*self.direction))
         elif self._one_square(self, white_pieces, black_pieces):
             movements.append((self.square[0], self.square[1]+self.direction))
+        movements.extend(self._captures(enemy_pieces))
         return movements
 
     def _one_square(self, white_pieces, black_pieces):
@@ -75,8 +76,15 @@ class Pawn(Piece):
                 return False
         return True
 
-    def capture(self, enemy_pieces):
+    def _captures(self, enemy_pieces):
         """ Return the possible captures """
+        moves = []
+        for piece in enemy_pieces.sprites():
+            if piece.square == (self.square[0]+1, self.square[1]+self.direction):
+                moves.append(piece.square)
+            if piece.square == (self.square[0]-1, self.square[1]+self.direction):
+                moves.append(piece.square)
+        return moves
 
 
 class Rook(Piece):
@@ -85,6 +93,29 @@ class Rook(Piece):
     def __init__(self, ai_game, square, color):
         """ Create a new rook """
         super().__init__(ai_game, square, f"{color}R")
+
+    def possible_movements(self, white_pieces, black_pieces):
+        """ Return the possible movements of the rook """
+        dirs = [(1,0),(0,-1),(-1,0),(0,1)]
+        enemy_pieces = white_pieces if self.color == "b" else black_pieces
+        friendly_pieces = black_pieces if self.color == "b" else white_pieces
+        movements = []
+        for direction in dirs:
+            temporary_square = self.square 
+            flag = True
+            while flag:
+                temporary_square = (temporary_square[0]+direction[0], 
+                                    temporary_square[1]+direction[1])
+                for piece in enemy_pieces:
+                    if piece.square == temporary_square:
+                        movements.append(temporary_square)
+                        flag = False
+                for piece in friendly_pieces:
+                    if piece.square == temporary_square:
+                        flag = False
+                if flag:
+                    movements.append(temporary_square)
+        return movements
 
 
 class Knight(Piece):
@@ -106,7 +137,6 @@ class Queen(Piece):
 
     def __init__(self, ai_game, square, color):
         super().__init__(ai_game, square, f"{color}Q")
-
 
 class King(Piece):
     """ A class to representing a king """
