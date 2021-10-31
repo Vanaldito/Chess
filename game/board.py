@@ -8,7 +8,7 @@ class Board:
         self.screen = ai_game.screen
         self.settings = ai_game.settings
 
-        self.square_size = self.screen.get_rect().width // 8
+        self.square_size = self.settings.square_size
 
         self.array = []
         for i in range(8):

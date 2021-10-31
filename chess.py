@@ -4,6 +4,7 @@ from pygame.locals import *
 
 from settings import Settings
 from game.board import Board
+from game.piece import Piece
 
 class ChessGame:
     """ A class to manage the game """
@@ -15,6 +16,7 @@ class ChessGame:
         self.screen = pygame.display.set_mode(self.settings.screen_size)
 
         self.board = Board(self)
+        self.pieces = pygame.sprite.Group()
 
     def run_game(self):
         """ Init the game loop """
@@ -34,6 +36,7 @@ class ChessGame:
         self.screen.fill((0,0,0))
 
         self.board.update()
+        self.pieces.draw(self.screen)
         
         pygame.display.update()
 
