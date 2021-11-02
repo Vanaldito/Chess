@@ -115,7 +115,7 @@ class Rook(Piece):
                     if piece.square == temporary_square:
                         flag = False
                 if (temporary_square[0] < 0 or temporary_square[0] > 7 or
-                        temporary_square[0] < 0 or temporary_square[0] > 7):
+                        temporary_square[1] < 0 or temporary_square[1] > 7):
                     flag = False
                 if flag:
                     movements.append(temporary_square)
@@ -142,7 +142,7 @@ class Knight(Piece):
                 if piece.square == temporary_square:
                     flag = False
             if (temporary_square[0] < 0 or temporary_square[0] > 7 or
-                    temporary_square[0] < 0 or temporary_square[0] > 7):
+                    temporary_square[1] < 0 or temporary_square[1] > 7):
                 flag = False
             if flag:
                 movements.append(temporary_square)
@@ -176,7 +176,7 @@ class Bishop(Piece):
                     if piece.square == temporary_square:
                         flag = False
                 if (temporary_square[0] < 0 or temporary_square[0] > 7 or
-                        temporary_square[0] < 0 or temporary_square[0] > 7):
+                        temporary_square[1] < 0 or temporary_square[1] > 7):
                     flag = False
                 if flag:
                     movements.append(temporary_square)
@@ -212,7 +212,7 @@ class Queen(Piece):
                         flag = False
                         break
                 if (temporary_square[0] < 0 or temporary_square[0] > 7 or
-                        temporary_square[0] < 0 or temporary_square[0] > 7):
+                        temporary_square[1] < 0 or temporary_square[1] > 7):
                     flag = False
                 if flag:
                     movements.append(temporary_square)
