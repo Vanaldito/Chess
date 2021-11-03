@@ -27,11 +27,6 @@ class ChessGame:
         while True:
             self._check_events()
             self._update_screen()
-            init = time.time()
-            for piece in self.white_pieces:
-                piece.possible_movements(self.white_pieces, self.black_pieces)
-            end = time.time()
-            print(end-init)
 
     def _check_events(self):
         """ Check the game events """
