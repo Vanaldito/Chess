@@ -26,11 +26,31 @@ class Piece(Sprite):
         self.rect.topleft = (destination_square[0] * self.settings.square_size,
                              destination_square[1] * self.settings.square_size) 
         self.square = destination_square
-        self.already_moved = True
 
-    def possible_movements(self):
-        """ Return the movements of the piece """
+    def theoretical_movements(self, white_pieces, black_pieces):
+        """ Return the theoretical movements of the piece """
         pass
+
+    def possible_movements(self, white_pieces, black_pieces, king):
+        """ Return the possible movements of the piece """
+        real_square = self.square
+        enemy_pieces = white_pieces if self.color == "b" else black_pieces
+        possible_movements = []
+        for movement in self.theoretical_movements(white_pieces, black_pieces):
+            self.movement(movement)
+
+            # If there are a capture delete the piece temporarily
+            capture = pygame.sprite.spritecollideany(self, enemy_pieces)
+            if capture:
+                enemy_pieces.remove(capture)
+
+            if not king.check(white_pieces, black_pieces):
+                possible_movements.append(movement)
+
+            if capture:
+                enemy_pieces.add(capture)
+            self.movement(real_square)
+        return possible_movements
 
 
 class Pawn(Piece):
@@ -43,8 +63,8 @@ class Pawn(Piece):
         self.direction = 1 if self.color == "b" else -1
         self.en_passant = False
 
-    def possible_movements(self, white_pieces, black_pieces):
-        """ Return the movements of the pawn """
+    def theoretical_movements(self, white_pieces, black_pieces):
+        """ Return the theoretical movements of the pawn """
         movements = []
         enemy_pieces = white_pieces if self.color == "b" else black_pieces
         if self._two_squares(white_pieces, black_pieces):
@@ -96,8 +116,8 @@ class Rook(Piece):
         super().__init__(ai_game, square, f"{color}R")
         self.color = color
 
-    def possible_movements(self, white_pieces, black_pieces):
-        """ Return the possible movements of the rook """
+    def theoretical_movements(self, white_pieces, black_pieces):
+        """ Return the theoretical movements of the rook """
         dirs = [(1,0),(0,-1),(-1,0),(0,1)]
         enemy_pieces = white_pieces if self.color == "b" else black_pieces
         friendly_pieces = black_pieces if self.color == "b" else white_pieces
@@ -130,8 +150,8 @@ class Knight(Piece):
         super().__init__(ai_game, square, f"{color}N")
         self.color = color
 
-    def possible_movements(self, white_pieces, black_pieces):
-        """ Return the possible movements of the knight """
+    def theoretical_movements(self, white_pieces, black_pieces):
+        """ Return the theoretical movements of the knight """
         dirs = [(2,1),(2,-1),(1,2),(-1,2),(-2,1),(-2,-1),(-1,-2),(1,-2)]
         friendly_pieces = white_pieces if self.color == "w" else black_pieces
         movements = []
@@ -157,8 +177,8 @@ class Bishop(Piece):
         super().__init__(ai_game, square, f"{color}B")
         self.color = color
 
-    def possible_movements(self, white_pieces, black_pieces):
-        """ Return the possible movements of the bishop """
+    def theoretical_movements(self, white_pieces, black_pieces):
+        """ Return the theoretical movements of the bishop """
         dirs = [(1,1),(1,-1),(-1,-1),(-1,1)]
         enemy_pieces = white_pieces if self.color == "b" else black_pieces
         friendly_pieces = black_pieces if self.color == "b" else white_pieces
@@ -191,8 +211,8 @@ class Queen(Piece):
         super().__init__(ai_game, square, f"{color}Q")
         self.color = color
 
-    def possible_movements(self, white_pieces, black_pieces):
-        """ Return the possible movements of the queen """
+    def theoretical_movements(self, white_pieces, black_pieces):
+        """ Return the theoretical movements of the queen """
         dirs = [(1,0),(1,1),(0,1),(-1,0),(0,-1),(1,-1),(-1,-1),(-1,1)]
         enemy_pieces = white_pieces if self.color == "b" else black_pieces
         friendly_pieces = black_pieces if self.color == "b" else white_pieces
@@ -227,8 +247,8 @@ class King(Piece):
         super().__init__(ai_game, square, f"{color}K")
         self.color = color
 
-    def possible_movements(self, white_pieces, black_pieces):
-        """ Return the possible movements of the king """
+    def theoretical_movements(self, white_pieces, black_pieces):
+        """ Return the theoretical movements of the king """
         dirs = [(1,0),(1,1),(0,1),(-1,0),(0,-1),(1,-1),(-1,-1),(-1,1)]
         friendly_pieces = white_pieces if self.color == "w" else black_pieces
         movements = []
@@ -250,6 +270,6 @@ class King(Piece):
         """ Check if the king is in check """
         enemy_pieces = white_pieces if self.color == "b" else black_pieces 
         for piece in enemy_pieces:
-            if self.square in piece.possible_movements(white_pieces, black_pieces):
+            if self.square in piece.theoretical_movements(white_pieces, black_pieces):
                 return True
         return False

@@ -1,5 +1,4 @@
 import pygame, sys
-import time
 
 from pygame.locals import *
 
@@ -16,6 +15,7 @@ class ChessGame:
         self.settings = Settings()
         
         self.screen = pygame.display.set_mode(self.settings.screen_size)
+        pygame.display.set_caption("Chess Game")
 
         self.board = Board(self)
 
@@ -44,36 +44,57 @@ class ChessGame:
         """ Respond to mousebuttondown events """
         checked_square = (event.pos[0] // self.settings.square_size,
                           event.pos[1] // self.settings.square_size)
-        possible_pieces = self.white_pieces if self.turn == "w" else self.black_pieces 
+
+        friendly_pieces = self.white_pieces if self.turn == "w" else self.black_pieces 
         enemy_pieces = self.white_pieces if self.turn == "b" else self.black_pieces
+        king = self.white_king if self.turn == "w" else self.black_king
+
         if self.active_piece: 
-            if checked_square in self.active_piece.possible_movements(self.white_pieces, self.black_pieces):
+            if checked_square in self.active_piece.possible_movements(self.white_pieces, self.black_pieces, king):
                 self.active_piece.movement(checked_square)
-                pygame.sprite.groupcollide(possible_pieces, enemy_pieces, False, True)
+                self.active_piece.already_moved = True
+
+                # Check the captures
+                pygame.sprite.groupcollide(friendly_pieces, enemy_pieces, False, True)
+
                 self.turn = "b" if self.turn == "w" else "w"
-            self.active_piece = None
+                self.active_piece = None
+            else:
+                self.active_piece = None
+                for piece in friendly_pieces:
+                    if piece.square == checked_square:
+                        self.active_piece = piece
+                        break
         else:
-            for piece in possible_pieces:
+            for piece in friendly_pieces:
                 if piece.square == checked_square:
                     self.active_piece = piece
                     break
 
     def _draw_possible_movements(self):
-        """ Draw the possible movements if there are a active piece """
-        for movement in self.active_piece.possible_movements(self.white_pieces, self.black_pieces):
+        """ Draw circles in the possible movements if there are a active piece """
+        king = self.white_king if self.turn == "w" else self.black_king
+
+        pygame.draw.rect(self.screen, self.settings.active_color, (self.active_piece.square[0]*self.settings.square_size,
+                         self.active_piece.square[1]*self.settings.square_size, self.settings.square_size, 
+                         self.settings.square_size), 5)       
+
+        for movement in self.active_piece.possible_movements(self.white_pieces, self.black_pieces, king):
             pygame.draw.circle(self.screen, self.settings.movement_color, ((movement[0]+0.5)*self.settings.square_size, 
                               (movement[1]+0.5)*self.settings.square_size), self.settings.square_size//3)
-
+        
     def _update_screen(self):
         """ Show the screen """
         self.screen.fill((0,0,0))
 
         self.board.update()
-        self.white_pieces.draw(self.screen)
-        self.black_pieces.draw(self.screen)
+
         if self.active_piece:
             self._draw_possible_movements()
-        
+
+        self.white_pieces.draw(self.screen)
+        self.black_pieces.draw(self.screen)
+
         pygame.display.update()
 
 
