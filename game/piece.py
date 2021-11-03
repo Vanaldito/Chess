@@ -19,6 +19,7 @@ class Piece(Sprite):
         self.movement(self.square)
 
         self.already_moved = False
+        self.active = False
 
     def movement(self, destination_square):
         """ Move the piece """
@@ -49,7 +50,7 @@ class Pawn(Piece):
         if self._two_squares(white_pieces, black_pieces):
             movements.append((self.square[0], self.square[1]+self.direction))
             movements.append((self.square[0], self.square[1]+2*self.direction))
-        elif self._one_square(self, white_pieces, black_pieces):
+        elif self._one_square(white_pieces, black_pieces):
             movements.append((self.square[0], self.square[1]+self.direction))
         movements.extend(self._captures(enemy_pieces))
         return movements
@@ -238,6 +239,17 @@ class King(Piece):
             for piece in friendly_pieces:
                 if piece.square == temporary_square:
                     flag = False
+            if (temporary_square[0] < 0 or temporary_square[0] > 7 or
+                temporary_square[1] < 0 or temporary_square[1] > 7):
+                flag = False
             if flag:
                 movements.append(temporary_square)
         return movements
+
+    def check(self, white_pieces, black_pieces):
+        """ Check if the king is in check """
+        enemy_pieces = white_pieces if self.color == "b" else black_pieces 
+        for piece in enemy_pieces:
+            if self.square in piece.possible_movements(white_pieces, black_pieces):
+                return True
+        return False

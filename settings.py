@@ -11,3 +11,5 @@ class Settings:
         self.light_color = (255,255,255)
 
         self.square_size = self.screen_width // 8
+
+        self.movement_color = (255,0,0)
