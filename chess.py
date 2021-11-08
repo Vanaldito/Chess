@@ -76,11 +76,22 @@ class ChessGame:
 
     def _move(self, friendly_pieces, enemy_pieces, square):
         """ Move the active piece, realize the captures and change of turn """
-        # Check capture en passant
+        # The next lines is for the en passant capture 
+
+        # Capture the piece en passant
         if type(self.active_piece) is Pawn and square in self.active_piece.move_en_passant(enemy_pieces):
-            # Capture the piece en passant
             self.active_piece.movement((square[0], self.active_piece.square[1]))
             pygame.sprite.groupcollide(friendly_pieces, enemy_pieces, False, True)
+
+        # The en passant capture only be made on the movement inmediately after of the enemy pawn 
+        # makes the double-step move
+        for piece in enemy_pieces:
+            if type(piece) is Pawn:
+                piece.en_passant = False
+
+        if type(self.active_piece) is Pawn:
+            if square[1] == self.active_piece.square[1] + 2*self.active_piece.direction:
+                self.active_piece.en_passant = True
 
         self.active_piece.movement(square)
         self.active_piece.already_moved = True
