@@ -1,10 +1,15 @@
 from pygame.sprite import Group
 
-from game.piece import *
+from .pawn import Pawn
+from .king import King
+from .bishop import Bishop
+from .knight import Knight
+from .queen import Queen
+from .rook import Rook
 
 def create_white_pieces(ai_game):
     """ Get a the white pieces in the initial position """
-    white_pieces = pygame.sprite.Group()
+    white_pieces = Group()
 
     for i in range(8):
         white_pieces.add(Pawn(ai_game, (i,6), "w"))
@@ -22,7 +27,7 @@ def create_white_pieces(ai_game):
 
 def create_black_pieces(ai_game):
     """ Get a the white pieces in the initial position """
-    black_pieces = pygame.sprite.Group()
+    black_pieces = Group()
 
     for i in range(8):
         black_pieces.add(Pawn(ai_game, (i,1), "b"))

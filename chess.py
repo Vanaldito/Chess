@@ -2,10 +2,10 @@ import pygame, sys
 
 from pygame.locals import *
 
-from game.new_game import create_white_pieces, create_black_pieces
+from game.piece.new_game import create_white_pieces, create_black_pieces
 from settings import Settings
 from game.board import Board
-from game.piece import *
+from game.piece.pawn import Pawn
 
 class ChessGame:
     """ A class to manage the game """
@@ -92,6 +92,9 @@ class ChessGame:
         if type(self.active_piece) is Pawn:
             if square[1] == self.active_piece.square[1] + 2*self.active_piece.direction:
                 self.active_piece.en_passant = True
+
+        # The next lines is for castle
+
 
         self.active_piece.movement(square)
         self.active_piece.already_moved = True
