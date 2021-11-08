@@ -7,6 +7,7 @@ class Piece(Sprite):
     def __init__(self, ai_game, square, image):
         """ Create a new piece """
         super().__init__()
+        self.ai_game = ai_game
         self.screen = ai_game.screen
         self.settings = ai_game.settings
 
@@ -73,6 +74,7 @@ class Pawn(Piece):
         elif self._one_square(white_pieces, black_pieces):
             movements.append((self.square[0], self.square[1]+self.direction))
         movements.extend(self._captures(enemy_pieces))
+        movements.extend(self.move_en_passant(enemy_pieces))
         return movements
 
     def _one_square(self, white_pieces, black_pieces):
@@ -106,6 +108,20 @@ class Pawn(Piece):
             if piece.square == (self.square[0]-1, self.square[1]+self.direction):
                 moves.append(piece.square)
         return moves
+
+    def promotion(self, pieces):
+        """ Promotion the pawn """
+        if self.square[1] == int(3.5 + self.direction * 3.5):
+            pieces.add(Queen(self.ai_game, self.square, self.color))
+            pieces.remove(self)
+
+    def move_en_passant(self, enemy_pieces):
+        movements = []
+        for piece in enemy_pieces:
+            if (type(piece) is Pawn and abs(piece.square[0] - self.square[0]) == 1 
+                    and piece.square[1] == self.square[1]) and piece.en_passant:
+                movements.append((piece.square[0], piece.square[1]+self.direction))
+        return movements
 
 
 class Rook(Piece):

@@ -14,3 +14,5 @@ class Settings:
 
         self.movement_color = (255,0,0)
         self.active_color = (0,255,0)
+
+        self.FPS = 60

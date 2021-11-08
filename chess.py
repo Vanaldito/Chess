@@ -17,6 +17,8 @@ class ChessGame:
         self.screen = pygame.display.set_mode(self.settings.screen_size)
         pygame.display.set_caption("Chess Game")
 
+        self.clock = pygame.time.Clock()
+
         self.board = Board(self)
 
         self.white_king, self.white_pieces = create_white_pieces(self)
@@ -30,6 +32,8 @@ class ChessGame:
         while True:
             self._check_events()
             self._update_screen()
+
+            self.clock.tick(self.settings.FPS)
 
     def _check_events(self):
         """ Check the game events """
@@ -51,33 +55,69 @@ class ChessGame:
 
         if self.active_piece: 
             if checked_square in self.active_piece.possible_movements(self.white_pieces, self.black_pieces, king):
-                self.active_piece.movement(checked_square)
-                self.active_piece.already_moved = True
-
-                # Check the captures
-                pygame.sprite.groupcollide(friendly_pieces, enemy_pieces, False, True)
-
-                self.turn = "b" if self.turn == "w" else "w"
-                self.active_piece = None
+                self._move(friendly_pieces, enemy_pieces, checked_square)
             else:
-                self.active_piece = None
+                active_piece = None
                 for piece in friendly_pieces:
                     if piece.square == checked_square:
-                        self.active_piece = piece
+                        # Desactive the piece if press it two times
+                        if piece == self.active_piece:
+                            active_piece = None
+                        # If press other piece, change the active piece
+                        else:
+                            active_piece = piece
                         break
+                self.active_piece = active_piece
         else:
             for piece in friendly_pieces:
                 if piece.square == checked_square:
                     self.active_piece = piece
                     break
 
+    def _move(self, friendly_pieces, enemy_pieces, square):
+        """ Move the active piece, realize the captures and change of turn """
+        # Check capture en passant
+        if type(self.active_piece) is Pawn and square in self.active_piece.move_en_passant(enemy_pieces):
+            # Capture the piece en passant
+            self.active_piece.movement((square[0], self.active_piece.square[1]))
+            pygame.sprite.groupcollide(friendly_pieces, enemy_pieces, False, True)
+
+        self.active_piece.movement(square)
+        self.active_piece.already_moved = True
+
+        # Check the captures
+        pygame.sprite.groupcollide(friendly_pieces, enemy_pieces, False, True)
+
+        if type(self.active_piece) is Pawn:
+            # The pawn is turned into a queen
+            self.active_piece.promotion(friendly_pieces)
+
+        self.turn = "b" if self.turn == "w" else "w"
+
+        self.active_piece = None
+
+        king = self.white_king if self.turn == "w" else self.black_king
+        self._check_checkmate(self.turn, enemy_pieces, king)
+
+    def _check_checkmate(self, color, pieces, king):
+        """ Check if the king is in checkmate """
+        for piece in pieces:
+            if piece.possible_movements(self.white_pieces, self.black_pieces, king):
+                return None
+
+        if king.check(self.white_pieces, self.black_pieces):
+            print(f"{color} lose")
+            pygame.quit()
+            sys.exit()
+
     def _draw_possible_movements(self):
         """ Draw circles in the possible movements if there are a active piece """
         king = self.white_king if self.turn == "w" else self.black_king
 
+        # Draw a rectangle in the active piece square
         pygame.draw.rect(self.screen, self.settings.active_color, (self.active_piece.square[0]*self.settings.square_size,
                          self.active_piece.square[1]*self.settings.square_size, self.settings.square_size, 
-                         self.settings.square_size), 5)       
+                         self.settings.square_size), 5, 1)       
 
         for movement in self.active_piece.possible_movements(self.white_pieces, self.black_pieces, king):
             pygame.draw.circle(self.screen, self.settings.movement_color, ((movement[0]+0.5)*self.settings.square_size, 
