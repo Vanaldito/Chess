@@ -6,12 +6,15 @@ from game.piece.new_game import create_white_pieces, create_black_pieces
 from settings import Settings
 from game.board import Board
 from game.piece.pawn import Pawn
+from game.piece.king import King
 
 class ChessGame:
     """ A class to manage the game """
 
     def __init__(self):
         """ Create a new game instance """
+        pygame.init()
+
         self.settings = Settings()
         
         self.screen = pygame.display.set_mode(self.settings.screen_size)
@@ -23,6 +26,8 @@ class ChessGame:
 
         self.white_king, self.white_pieces = create_white_pieces(self)
         self.black_king, self.black_pieces = create_black_pieces(self)
+
+        self.sound = pygame.mixer.Sound("Assets/chessmove.wav")
 
         self.turn = "w"
         self.active_piece = None
@@ -94,9 +99,21 @@ class ChessGame:
                 self.active_piece.en_passant = True
 
         # The next lines is for castle
+        if type(self.active_piece) is King: 
+            # Short castle
+            movement, rook = self.active_piece.short_castle(self.white_pieces, self.black_pieces)
+            if square in movement:
+                rook.movement((rook.square[0]-2, rook.square[1]))
+                rook.already_moved = True
+            # Large castle
+            movement, rook = self.active_piece.large_castle(self.white_pieces, self.black_pieces)
+            if square in movement:
+                rook.movement((rook.square[0]+3, rook.square[1]))
+                rook.already_moved = True
 
 
         self.active_piece.movement(square)
+        self.sound.play()
         self.active_piece.already_moved = True
 
         # Check the captures

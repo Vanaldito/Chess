@@ -51,4 +51,5 @@ class Piece(Sprite):
             if capture:
                 enemy_pieces.add(capture)
             self.movement(real_square)
+
         return possible_movements
