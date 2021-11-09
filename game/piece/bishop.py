@@ -6,6 +6,7 @@ class Bishop(Piece):
     def __init__(self, ai_game, square, color):
         super().__init__(ai_game, square, f"{color}B")
         self.color = color
+        self.name = f"{color}Bishop"
 
     def theoretical_movements(self, white_pieces, black_pieces):
         """ Return the theoretical movements of the bishop """

@@ -7,6 +7,7 @@ class Rook(Piece):
         """ Create a new rook """
         super().__init__(ai_game, square, f"{color}R")
         self.color = color
+        self.name = f"{color}Rook"
 
     def theoretical_movements(self, white_pieces, black_pieces):
         """ Return the theoretical movements of the rook """

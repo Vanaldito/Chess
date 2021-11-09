@@ -4,9 +4,11 @@ from pygame.locals import *
 
 from game.piece.new_game import create_white_pieces, create_black_pieces
 from settings import Settings
+from results import Results
 from game.board import Board
 from game.piece.pawn import Pawn
 from game.piece.king import King
+from game.piece.rook import Rook
 
 class ChessGame:
     """ A class to manage the game """
@@ -20,6 +22,7 @@ class ChessGame:
         self.screen = pygame.display.set_mode(self.settings.screen_size)
         pygame.display.set_caption("Chess Game")
 
+        self.results = Results(self)
         self.clock = pygame.time.Clock()
 
         self.board = Board(self)
@@ -29,8 +32,12 @@ class ChessGame:
 
         self.sound = pygame.mixer.Sound("Assets/chessmove.wav")
 
+        self.game_active = False
+
         self.turn = "w"
         self.active_piece = None
+        self.fifty_movements = 0
+        self.positions = {}
 
     def run_game(self):
         """ Init the game loop """
@@ -46,8 +53,11 @@ class ChessGame:
             if event.type == QUIT:
                 pygame.quit()
                 sys.exit()
-            if event.type == MOUSEBUTTONDOWN:
+            elif event.type == MOUSEBUTTONDOWN and self.game_active:
                 self._check_mousebuttondown_events(event)
+            elif event.type == KEYDOWN and not self.game_active:
+                if event.key == K_p:
+                    self._reset_all()
 
     def _check_mousebuttondown_events(self, event):
         """ Respond to mousebuttondown events """
@@ -117,11 +127,22 @@ class ChessGame:
         self.active_piece.already_moved = True
 
         # Check the captures
-        pygame.sprite.groupcollide(friendly_pieces, enemy_pieces, False, True)
+        capture = pygame.sprite.groupcollide(friendly_pieces, enemy_pieces, False, True)
+
+        if capture or type(self.active_piece) is Pawn:
+            self.fifty_movements = 0
+        else:
+            self.fifty_movements += 1
 
         if type(self.active_piece) is Pawn:
             # The pawn is turned into a queen
             self.active_piece.promotion(friendly_pieces)
+
+        actual_position = self._get_position()
+        if actual_position in self.positions.keys():
+            self.positions[actual_position] += 1
+        else:
+            self.positions[actual_position] = 1
 
         self.turn = "b" if self.turn == "w" else "w"
 
@@ -129,6 +150,28 @@ class ChessGame:
 
         king = self.white_king if self.turn == "w" else self.black_king
         self._check_checkmate(self.turn, enemy_pieces, king)
+        self._check_draws(enemy_pieces, king)
+
+    def _get_position(self):
+        """ Return a string representing the position """
+        actual_position = []
+        for piece in self.white_pieces:
+            if type(piece) is Pawn:
+                piece_status = f"{piece.name}, {piece.square}, {piece.en_passant}"
+            elif type(piece) is King or type(piece) is Rook:
+                piece_status = f"{piece.name}, {piece.square}, {piece.already_moved}"
+            else:
+                piece_status = f"{piece.name}, {piece.square}"
+            actual_position.append(piece_status)
+        for piece in self.black_pieces:
+            if type(piece) is Pawn:
+                piece_status = f"{piece.name}, {piece.square}, {piece.en_passant}"
+            elif type(piece) is King or type(piece) is Rook:
+                piece_status = f"{piece.name}, {piece.square}, {piece.already_moved}"
+            else:
+                piece_status = f"{piece.name}, {piece.square}"
+            actual_position.append(piece_status)
+        return "".join(sorted(actual_position))
 
     def _check_checkmate(self, color, pieces, king):
         """ Check if the king is in checkmate """
@@ -137,9 +180,28 @@ class ChessGame:
                 return None
 
         if king.check(self.white_pieces, self.black_pieces):
-            print(f"{color} lose")
-            pygame.quit()
-            sys.exit()
+            winner = "black" if color=="w" else "white"
+            self.results.prep(f"The {winner} player is the winner")
+            self.game_active = False
+
+    def _check_draws(self, pieces, king):
+        """ Check if the game is draws """
+        # Check stalemate
+        movements = []
+        for piece in pieces:
+            movements.extend(piece.possible_movements(self.white_pieces, self.black_pieces, king))
+        if not movements and not king.check(self.white_pieces, self.black_pieces):
+            self.results.prep("The game is draw for stalemate")
+            self.game_active = False
+
+        # 50 movements rules
+        if self.fifty_movements == 100:
+            self.results.prep("The game is draw for", "fifty movements rule")
+            self.game_active = False
+
+        if 3 in self.positions.values():
+            self.results.prep("The game is draw for repeat", "the same position three times")
+            self.game_active = False
 
     def _draw_possible_movements(self):
         """ Draw circles in the possible movements if there are a active piece """
@@ -153,18 +215,33 @@ class ChessGame:
         for movement in self.active_piece.possible_movements(self.white_pieces, self.black_pieces, king):
             pygame.draw.circle(self.screen, self.settings.movement_color, ((movement[0]+0.5)*self.settings.square_size, 
                               (movement[1]+0.5)*self.settings.square_size), self.settings.square_size//3)
+
+    def _reset_all(self):
+        """ Reset all and init a new game """
+        self.white_king, self.white_pieces = create_white_pieces(self)
+        self.black_king, self.black_pieces = create_black_pieces(self)
+
+        self.turn = "w"
+        self.active_piece = None
+        self.fifty_movements = 0
+        self.positions = {}
+
+        self.game_active = True
         
     def _update_screen(self):
         """ Show the screen """
         self.screen.fill((0,0,0))
 
-        self.board.update()
+        if self.game_active:
+            self.board.update()
 
-        if self.active_piece:
-            self._draw_possible_movements()
+            if self.active_piece:
+                self._draw_possible_movements()
 
-        self.white_pieces.draw(self.screen)
-        self.black_pieces.draw(self.screen)
+            self.white_pieces.draw(self.screen)
+            self.black_pieces.draw(self.screen)
+        else:
+            self.results.update()
 
         pygame.display.update()
 

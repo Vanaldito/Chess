@@ -11,6 +11,7 @@ class Pawn(Piece):
         self.color = color
         self.direction = 1 if self.color == "b" else -1
         self.en_passant = False
+        self.name = f"{color}Pawn"
 
     def theoretical_movements(self, white_pieces, black_pieces):
         """ Return the theoretical movements of the pawn """

@@ -10,6 +10,7 @@ class King(Piece):
     def __init__(self, ai_game, square, color):
         super().__init__(ai_game, square, f"{color}K")
         self.color = color
+        self.name = f"{color}King"
 
     def theoretical_movements(self, white_pieces, black_pieces):
         """ Return the theoretical movements of the king """
@@ -44,29 +45,33 @@ class King(Piece):
         friendly_pieces = white_pieces if self.color == "w" else black_pieces
 
         movements = []
+        rook = None
         if not self.already_moved and not self.check(white_pieces, black_pieces):
             for piece in friendly_pieces:
                 if (type(piece) is Rook and not piece.already_moved and 
                         piece.square[0] - self.square[0] == 3):
                     if (self.there_are_no_pieces(white_pieces, black_pieces, self.square, 2, 1)
                             and self.there_are_no_checks(white_pieces, black_pieces, self.square, 2, 1)):
+                        rook = piece
                         movements.append((self.square[0]+2, self.square[1]))
                     break
-        return movements, piece
+        return movements, rook
 
     def large_castle(self, white_pieces, black_pieces):
         friendly_pieces = white_pieces if self.color == "w" else black_pieces
 
         movements = []
+        rook = None
         if not self.already_moved and not self.check(white_pieces, black_pieces):
             for piece in friendly_pieces:
                 if (type(piece) is Rook and not piece.already_moved and 
                         piece.square[0] - self.square[0] == -4):
                     if (self.there_are_no_pieces(white_pieces, black_pieces, self.square, 3, -1)
                             and self.there_are_no_checks(white_pieces, black_pieces, self.square, 2, -1)):
+                        rook = piece
                         movements.append((self.square[0]-2, self.square[1]))
                     break
-        return movements, piece
+        return movements, rook
 
     def there_are_no_pieces(self, white_pieces, black_pieces, actual_square, number_of_squares, direction):
         """ Return True if there are no pieces between the actual square and a number of squares"""

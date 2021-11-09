@@ -6,6 +6,7 @@ class Queen(Piece):
     def __init__(self, ai_game, square, color):
         super().__init__(ai_game, square, f"{color}Q")
         self.color = color
+        self.name = f"{color}Queen"
 
     def theoretical_movements(self, white_pieces, black_pieces):
         """ Return the theoretical movements of the queen """
